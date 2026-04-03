@@ -1,4 +1,25 @@
 SELECT * FROM movie_copy;
+
+CREATE TABLE movies(
+	id SERIAL PRIMARY KEY,
+	movies TEXT,
+	genre TEXT,
+	rating TEXT,
+	one_line TEXT,
+	stars TEXT,
+	votes TEXT,
+	runtime TEXT,
+	gross TEXT
+);
+--populating the table with data from the .csv file
+COPY cafe (movies, genre, rating, one_line, stars, votes, runtime, gross)
+	FROM 'C:\Program Files\PostgreSQL\dirty_cafe_sales.csv'
+DELIMITER ','
+CSV HEADER;
+
+CREATE TABLE movie_copy AS 
+SELECT  * 
+FROM movies;
 --checking for duplicates using a cte
 WITH film AS(
 	select *,
@@ -6,15 +27,10 @@ WITH film AS(
 	 PARTITION BY movies,year, genre, rating, one_line, stars, votes, runtime, gross ) AS rw_nb
 	 FROM movie_copy
 )
-SELECT * 
-FROM film
-WHERE rw_nb >1
-ORDER BY rw_nb;
-
-select *,
-ROW_NUMBER() OVER( 
- PARTITION BY movies,year, genre, rating, one_line, stars, votes, runtime, gross ) AS rw_nb
-FROM movie_copy;
+DELETE FROM movie_copy
+WHERE id IN(
+ SELECT id from film where rw_nb >1
+);
 
 --removing leading and trailing spaces
 UPDATE movie_copy
